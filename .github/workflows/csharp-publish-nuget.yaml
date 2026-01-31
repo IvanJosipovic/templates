@@ -2,6 +2,12 @@ name: Publish NuGet
 
 on:
   workflow_call:
+    inputs:
+      artifact-name:
+        description: 'Artifact name containing NuGet packages to publish'
+        default: 'nuget-packages'
+        required: false
+        type: string
     secrets:
       NUGET_API_KEY:
         required: true
@@ -9,14 +15,14 @@ on:
 #permissions:
 
 jobs:
-  build-test:
+  publish-nuget:
     name: Publish NuGet
     runs-on: ubuntu-latest
     steps:
     - name: Download NuGet Packages
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
-        name: nuget-packages
+        name: ${{ inputs.artifact-name }}
         path: nuget-packages
 
     - name: .NET NuGet Push
