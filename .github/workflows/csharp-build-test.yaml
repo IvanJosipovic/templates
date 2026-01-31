@@ -1,0 +1,55 @@
+name: Build & Test
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Package Version'
+        default: '0.0.1-alpha.1'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v5
+      with:
+        global-json-file: global.json
+
+    - name: .NET Build
+      run: dotnet build -c Release -p:Version=${{ inputs.version }}
+
+    - name: .NET Test
+      run: dotnet test -c Release -- --report-xunit-trx --report-xunit-trx-filename test-results.trx --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
+
+    - name: Coverage
+      uses: codecov/codecov-action@v5
+      with:
+        files: coverage.cobertura.xml
+        fail_ci_if_error: true
+
+    - name: Test Report
+      uses: dorny/test-reporter@v2
+      if: success() || failure()
+      with:
+        name: Tests
+        path: '**/TestResults/test-results.trx'
+        reporter: dotnet-trx
+
+    - name: .NET Pack
+      run: dotnet pack -c Release -p:Version=${{ inputs.version }}
+
+    - name: Upload NuGet Packages
+      uses: actions/upload-artifact@v6
+      with:
+        name: nuget-packages
+        path: src/**/*.nupkg
