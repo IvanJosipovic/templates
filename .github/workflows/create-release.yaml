@@ -21,9 +21,6 @@ on:
         description: "The release version"
         value: ${{ jobs.create-release.outputs.new_release_version }}
 
-permissions:
-  contents: read
-
 jobs:
   create-release:
     name: Create Release
