@@ -16,6 +16,11 @@ runs:
     with:
       name: ${{ inputs.artifact-name }}
       path: nuget-packages
+
+  - name: Display structure of downloaded files
+    shell: bash
+    run: ls -R nuget-packages
+
   - name: .NET NuGet Push
     shell: bash
     run: dotnet nuget push "nuget-packages/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json
