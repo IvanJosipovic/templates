@@ -12,7 +12,7 @@ runs:
   using: composite
   steps:
   - name: Download NuGet Packages
-    uses: actions/download-artifact@v7
+    uses: actions/download-artifact@v8
     with:
       name: ${{ inputs.artifact-name }}
       path: nuget-packages
