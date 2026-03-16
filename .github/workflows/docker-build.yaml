@@ -43,11 +43,21 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v4
 
-    - name: Build
+    - name: Save
       working-directory: ${{ inputs.working-directory }}
       run: |
         docker buildx build \
           --platform ${{ inputs.enableArm && 'linux/amd64,linux/arm64' || (runner.arch == 'ARM64' && 'linux/arm64' || 'linux/amd64') }} \
+          --build-arg version=${{ inputs.version }} \
+          --tag ${{ inputs.imageName }}:${{ inputs.version }} \
+          --file ${{ inputs.dockerfile }} \
+          --output type=oci,dest=${{ runner.temp }}/image.tar \
+          .
+
+    - name: Load
+      run: |
+        docker buildx build \
+          --platform ${{ (runner.arch == 'ARM64' && 'linux/arm64' || 'linux/amd64') }} \
           --load \
           --build-arg version=${{ inputs.version }} \
           --tag ${{ inputs.imageName }}:${{ inputs.version }} \
@@ -65,17 +75,6 @@ jobs:
         severity: 'CRITICAL,HIGH'
       env:
         TRIVY_DISABLE_VEX_NOTICE: true
-
-    - name: Save
-      working-directory: ${{ inputs.working-directory }}
-      run: |
-        docker buildx build \
-          --platform ${{ inputs.enableArm && 'linux/amd64,linux/arm64' || (runner.arch == 'ARM64' && 'linux/arm64' || 'linux/amd64') }} \
-          --build-arg version=${{ inputs.version }} \
-          --tag ${{ inputs.imageName }}:${{ inputs.version }} \
-          --file ${{ inputs.dockerfile }} \
-          --output type=oci,dest=${{ runner.temp }}/image.tar \
-          .
 
     - name: Upload archive
       uses: actions/upload-artifact@v4
