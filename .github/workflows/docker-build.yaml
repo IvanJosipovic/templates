@@ -1,0 +1,79 @@
+name: Build & Test
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Package Version'
+        default: '0.0.1-alpha.1'
+        required: false
+        type: string
+      dockerfile:
+        description: 'Dockerfile name'
+        default: 'Dockerfile'
+        required: false
+        type: string
+      working-directory:
+        description: 'Dockerfile working directory'
+        default: ''
+        required: false
+        type: string
+      imageName:
+        description: 'Image Name'
+        default: 'test.loc/testimage'
+        required: false
+        type: string
+      enableArm:
+        description: 'Enables linux/arm64'
+        default: true
+        required: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    - name: Build amd64
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        docker buildx build \
+          --platform linux/amd64 \
+          ${{ runner.arch == 'X64' && '' || '--load' }} \
+          --build-arg version=${{ inputs.version }} \
+          --tag ${{ inputs.imageName }} \
+          --file ${{ inputs.dockerfile }} \
+          .
+
+    - name: Build arm64
+      working-directory: ${{ inputs.working-directory }}
+      if: ${{ inputs.enableArm }}
+      run: |
+        docker buildx build \
+          --platform linux/arm64 \
+          ${{ runner.arch == 'ARM64' && '' || '--load' }} \
+          --build-arg version=${{ inputs.version }} \
+          --tag ${{ inputs.imageName }} \
+          --file ${{ inputs.dockerfile }} \
+          .
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ inputs.imageName }}
+        format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+      env:
+        TRIVY_DISABLE_VEX_NOTICE: true
