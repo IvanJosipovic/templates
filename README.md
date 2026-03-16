@@ -50,3 +50,28 @@ jobs:
       pull-requests: write
     uses: IvanJosipovic/templates/.github/workflows/csharp-publish-nuget.yaml@main
 ```
+## Lint PR
+
+```yaml
+name: "Lint PR"
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  pull-requests: read
+
+jobs:
+  main:
+    name: Validate PR title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
