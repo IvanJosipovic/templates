@@ -22,6 +22,22 @@ jobs:
     uses: IvanJosipovic/templates/.github/workflows/validate-renovate-config.yaml@main
 ```
 
+## CSharp PR Build & Test 
+
+```yaml
+name: PR Build & Test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  build-test:
+    permissions:
+      contents: read
+    uses: IvanJosipovic/templates/.github/workflows/csharp-build-test.yaml@main
+```
+
 ## CSharp Publish Nuget
 
 ```yaml
@@ -34,44 +50,49 @@ on:
       - 'main'
       - 'alpha'
       - 'beta'
-  pull_request:
-    types: [opened, reopened, synchronize]
-  merge_group:
 
 jobs:
-  call-workflow:
+  get-version:
     permissions:
-      id-token: write
+      contents: write
+    uses: IvanJosipovic/templates/.github/workflows/create-release.yaml@main
+    with:
+      dry_run: true
+
+  build-test:
+    needs: get-version
+    permissions:
+      contents: read
+    uses: IvanJosipovic/templates/.github/workflows/csharp-build-test.yaml@main
+    with:
+      version: ${{ needs.get-version.outputs.new_release_version }}
+
+  create-release:
+    needs: build-test
+    permissions:
       contents: write
       actions: write
       checks: write
       issues: write
-      packages: write
       pull-requests: write
-    uses: IvanJosipovic/templates/.github/workflows/csharp-publish-nuget.yaml@main
-```
-## Lint PR
+    uses: IvanJosipovic/templates/.github/workflows/create-release.yaml@main
+    with:
+      dry_run: false
 
-```yaml
-name: "Lint PR"
-
-on:
-  pull_request_target:
-    types:
-      - opened
-      - edited
-      - synchronize
-      - reopened
-
-permissions:
-  pull-requests: read
-
-jobs:
-  main:
-    name: Validate PR title
+  publish-nuget:
+    name: Publish NuGet
+    needs: create-release
+    if: needs.create-release.outputs.new_release_published == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
-      - uses: amannn/action-semantic-pull-request@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: NuGet login
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: IvanJosipovic
+    - uses: IvanJosipovic/templates/.github/actions/csharp-publish-nuget@main
+      env:
+        NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
 ```
