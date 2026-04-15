@@ -8,6 +8,11 @@ on:
         default: '0.0.1-alpha.1'
         required: false
         type: string
+      run_tests:
+        description: 'Run tests, coverage, and test reporting'
+        default: true
+        required: false
+        type: boolean
 
 permissions:
   contents: read
@@ -29,9 +34,11 @@ jobs:
       run: dotnet build -c Release -p:Version=${{ inputs.version }}
 
     - name: .NET Test
+      if: ${{ inputs.run_tests }}
       run: dotnet test -c Release -- --report-xunit-trx --report-xunit-trx-filename test-results.trx --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
 
     - name: Coverage
+      if: ${{ inputs.run_tests }}
       uses: codecov/codecov-action@v6
       with:
         files: coverage.cobertura.xml
@@ -39,7 +46,7 @@ jobs:
 
     - name: Test Report
       uses: dorny/test-reporter@v3
-      if: success() || failure()
+      if: ${{ inputs.run_tests && (success() || failure()) }}
       with:
         name: Tests
         path: '**/TestResults/test-results.trx'
