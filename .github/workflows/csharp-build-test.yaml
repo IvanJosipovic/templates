@@ -35,22 +35,47 @@ jobs:
 
     - name: .NET Test
       if: ${{ inputs.run_tests }}
-      run: dotnet test -c Release -- --report-xunit-trx --report-xunit-trx-filename test-results.trx --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
+      run: |
+        dotnet test \
+          --configuration Release \
+          --no-build \
+          --hangdump \
+          --hangdump-timeout 1m \
+          --report-xunit-trx \
+          --report-xunit-trx-filename test-results.trx \
+          --coverage \
+          --coverage-output-format cobertura \
+          --coverage-output coverage.cobertura.xml
 
     - name: Coverage
       if: ${{ inputs.run_tests }}
       uses: codecov/codecov-action@v6
       with:
-        files: coverage.cobertura.xml
+        files: tests/**/TestResults/coverage.cobertura.xml
         fail_ci_if_error: true
+
+    - name: Upload test dump
+      if: ${{ inputs.run_tests && failure() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-diagnostics
+        path: tests/**/TestResults/*.dmp
 
     - name: Test Report
       uses: dorny/test-reporter@v3
-      if: ${{ inputs.run_tests && (success() || failure()) }}
+      if: ${{ inputs.run_tests && (!cancelled()) }}
       with:
         name: Tests
-        path: '**/TestResults/test-results.trx'
+        path: tests/**/TestResults/test-results.trx
         reporter: dotnet-trx
+
+    - name: Test Summary
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: ${{ inputs.run_tests && (!cancelled()) }}
+      with:
+        check_name: Tests
+        comment_mode: always
+        files: tests/**/TestResults/test-results.trx
 
     - name: .NET Pack
       run: dotnet pack -c Release -p:Version=${{ inputs.version }}
