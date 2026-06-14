@@ -16,6 +16,8 @@ on:
 
 permissions:
   contents: read
+  checks: write
+  pull-requests: write
 
 jobs:
   build-test:
@@ -31,7 +33,10 @@ jobs:
         global-json-file: global.json
 
     - name: .NET Build
-      run: dotnet build -c Release -p:Version=${{ inputs.version }}
+      run: |
+        dotnet build \
+          --configuration Release \
+          -p:Version=${{ inputs.version }}
 
     - name: .NET Test
       if: ${{ inputs.run_tests }}
@@ -78,7 +83,10 @@ jobs:
         files: tests/**/TestResults/test-results.trx
 
     - name: .NET Pack
-      run: dotnet pack -c Release -p:Version=${{ inputs.version }}
+      run: |
+        dotnet pack \
+          --configuration Release \
+          -p:Version=${{ inputs.version }}
 
     - name: Upload NuGet Packages
       uses: actions/upload-artifact@v7
