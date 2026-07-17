@@ -38,6 +38,6 @@ jobs:
       with:
         dry_run: ${{ inputs.dry_run }}
         extra_plugins: |
-          conventional-changelog-conventionalcommits
+          conventional-changelog-conventionalcommits@9
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
