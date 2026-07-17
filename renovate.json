@@ -1,6 +1,20 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "enabled": true,
+  "timezone": "America/Vancouver",
+  "semanticCommits": "enabled",
+  "assignees": [
+    "@ivanjosipovic"
+  ],
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    ":semanticCommitTypeAll(fix)"
+  ],
+  "platformAutomerge": true,
+  "prConcurrentLimit": 0,
+  "prHourlyLimit": 0,
+  "ignorePaths": [
+    "**/docs/**",
+    "**/charts/**"
   ]
 }
