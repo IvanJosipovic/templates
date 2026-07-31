@@ -35,7 +35,17 @@ jobs:
 
     - name: .NET Test
       if: ${{ inputs.run_tests }}
-      run: dotnet test -c Release -- --report-xunit-trx --report-xunit-trx-filename test-results.trx --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
+      run: |
+        dotnet test \
+        -c Release \
+        --no-build \
+        --hangdump \
+        --hangdump-timeout 1m \
+        --report-xunit-trx \
+        --report-xunit-trx-filename test-results.trx \
+        --coverage \
+        --coverage-output-format cobertura \
+        --coverage-output coverage.cobertura.xml
 
     - name: Coverage
       if: ${{ inputs.run_tests }}
