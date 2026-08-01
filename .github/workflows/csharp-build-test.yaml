@@ -31,7 +31,7 @@ jobs:
         global-json-file: global.json
 
     - name: .NET Build
-      run: dotnet build -c Release -p:Version=${{ inputs.version }} -p:WarningLevel=0
+      run: dotnet build -c Release -p:Version=${{ inputs.version }} --tl:off -clp:ErrorsOnly
 
     - name: .NET Test
       if: ${{ inputs.run_tests }}
