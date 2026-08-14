@@ -13,6 +13,10 @@ on:
         default: true
         required: false
         type: boolean
+      timeout_minutes:
+        type: number
+        required: false
+        default: 30
 
 permissions:
   contents: read
@@ -20,6 +24,7 @@ permissions:
 jobs:
   build-test:
     name: Build & Test
+    timeout-minutes: ${{ inputs.timeout_minutes }}
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
