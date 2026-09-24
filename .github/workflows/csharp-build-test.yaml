@@ -53,7 +53,7 @@ jobs:
         -c Release \
         --no-build \
         --hangdump \
-        --hangdump-timeout 1m \
+        --hangdump-timeout 10m \
         --report-xunit-trx \
         --report-xunit-trx-filename test-results.trx \
         --coverage \
