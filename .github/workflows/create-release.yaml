@@ -32,6 +32,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v7
 
+    - name: Download NuGet Packages
+      uses: actions/download-artifact@v8
+      continue-on-error: true
+      with:
+        name: nuget-packages
+        path: nuget-packages
+
     - name: Semantic Release
       uses: cycjimmy/semantic-release-action@v6.0.0
       id: semantic
