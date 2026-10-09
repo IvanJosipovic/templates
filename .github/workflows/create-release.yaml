@@ -44,7 +44,6 @@ jobs:
       id: semantic
       with:
         dry_run: ${{ inputs.dry_run }}
-        skip_npm_plugin: true
         extra_plugins: |
           conventional-changelog-conventionalcommits@9
       env:
